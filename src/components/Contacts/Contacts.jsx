@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import Notification from '../Notification/Notification';
+import Notification from '../Notification';
 import PropTypes from 'prop-types';
 import {
   ContactsItem,

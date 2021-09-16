@@ -1,6 +1,6 @@
 import { Component, Fragment } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Section } from "./components/Section/Section";
+import { Section } from "./components/Section";
 
 import { Notify } from "notiflix";
 Notify.init({ position: "center-top" });

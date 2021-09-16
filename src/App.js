@@ -1,8 +1,8 @@
-import { Component, Fragment, useState, use } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Section from './components/Section';
-
 import { Notify } from 'notiflix';
+
 Notify.init({ position: 'center-top' });
 
 function App() {
@@ -10,14 +10,15 @@ function App() {
   const [filter, setFilter] = useState('');
 
   const makeSearch = e => {
-    const searchQuery = e.target.value.toLowerCase();
+    const searchQuery = e.target.valuetrim().toLowerCase();
     setFilter(searchQuery);
   };
 
   const doDeleteContact = id => {
+    if (!id) return;
+
     const newArr = [];
     let reportName;
-    if (!id) return;
 
     contacts.forEach(contact => {
       if (contact.id !== id) {
@@ -40,6 +41,15 @@ function App() {
     Notify.success('Well Done! Added ' + name);
   };
 
+  useEffect(() => {
+    const storage = JSON.parse(localStorage.getItem('contacts'));
+    if (storage) setContacts(storage);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+
   return (
     <Fragment>
       <Section title='Phonebook' component='Form' data={{ contacts, filter }} doAddContact={doAddContact} />
@@ -53,24 +63,6 @@ function App() {
       />
     </Fragment>
   );
-}
-
-class AppOld extends Component {
-  componentDidMount() {
-    const storage = JSON.parse(localStorage.getItem('contacts'));
-    if (storage) {
-      this.setState({ contacts: storage });
-    } else {
-      this.setState({ contscts: [], filter: '' });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-  render() {}
 }
 
 export default App;

@@ -1,15 +1,9 @@
 import { Fragment } from 'react';
 import Notification from '../Notification';
 import PropTypes from 'prop-types';
-import {
-  ContactsItem,
-  ContactsList,
-  DeleteButton,
-  NumberSpan,
-  SearchInput,
-} from './Contacts.styled';
+import { ContactsItem, ContactsList, DeleteButton, NumberSpan, SearchInput } from './Contacts.styled';
 
-const Contacts = ({ contacts, searchFunc, deleteFunc, message }) => {
+function Contacts({ contacts, searchFunc, deleteFunc, message }) {
   return (
     <Fragment>
       <ContactsList>
@@ -35,7 +29,7 @@ const Contacts = ({ contacts, searchFunc, deleteFunc, message }) => {
       {!contacts.length && <Notification message={message}></Notification>}
     </Fragment>
   );
-};
+}
 export default Contacts;
 
 Contacts.propTypes = {

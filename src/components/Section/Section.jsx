@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import PropTypes from 'prop-types';
 import Form from '../Form';
 import Contacts from '../Contacts';
@@ -6,81 +5,86 @@ import { TitleH1, SectionStyle } from './Section.styled';
 import { Notify } from 'notiflix';
 Notify.init({ position: 'center-top' });
 
-class Section extends Component {
-  onSubmit = e => {
+function Section({ title, component, searchFunc, deleteFunc, data, doAddContact }) {
+  function onSubmit(e) {
     e.preventDefault();
     const nameRef = e.target.children[0].children[1];
     const numberRef = e.target.children[1].children[1];
     const inputName = nameRef.value.trim();
     const inputNumber = numberRef.value;
 
-    if (!this.checkNumber(inputNumber)) {
+    if (checkNumberExists(inputNumber)) {
       if (inputNumber) Notify.warning('Sorry. This NUMBER already exists.');
       return;
     }
-    if (!this.checkName(inputName)) {
-      // if (inputName) Notify.warning('Sorry. This NAME already exists.');
+    if (checkNameExists(inputName)) {
       Notify.warning('Sorry. This NAME already exists.');
       return;
     }
 
     nameRef.value = '';
     numberRef.value = '';
-    this.props.doAddContact(inputName, inputNumber);
-  };
+    doAddContact(inputName, inputNumber);
+  }
 
-  doClearNumber = number => {
+  function checkNumberExists(inputNumber) {
+    const clearNumber = doClearNumber(inputNumber);
+    const contacts = data.contacts;
+    let result = false;
+    if (inputNumber === '') result = true;
+    contacts.forEach(({ number }) => {
+      if (clearNumber === doClearNumber(number)) result = true;
+    });
+    return result;
+  }
+
+  function checkNameExists(inputName) {
+    const contacts = data.contacts;
+    let result = false;
+    const clearName = doClearName(inputName);
+    if (clearName === '') result = true;
+    contacts.forEach(({ name }) => {
+      if (clearName === doClearName(name)) result = true;
+    });
+    return result;
+  }
+
+  function doClearName(name) {
+    return name.split(' ').join('').toLowerCase().trim();
+  }
+
+  function doClearNumber(number) {
     const noSpace = number.split(' ').join('');
     const noBracket = noSpace.split('(').join('').split(')').join('');
     const noSign = noBracket.split('-').join('').split('+').join('');
     return noSign;
-  };
-
-  checkNumber(inputNumber) {
-    const clearNumber = this.doClearNumber(inputNumber);
-    let result = true;
-    if (inputNumber === '') result = false;
-    this.props.data.contacts.forEach(({ number }) => {
-      if (clearNumber === this.doClearNumber(number)) result = false;
-    });
-
-    return result;
   }
 
-  checkName(inputName) {
-    let result = true;
-    const clearName = this.doClearName(inputName);
-    if (clearName === '') result = false;
-    this.props.data.contacts.forEach(({ name }) => {
-      if (clearName === this.doClearName(name)) result = false;
-    });
-    return result;
-  }
-
-  doClearName(name) {
-    return name.split(' ').join('').toLowerCase().trim();
-  }
-
-  checkForDoubleID(contacts) {
-    const ids = [];
-    const checked = [];
-    contacts.forEach(contact => {
-      if (ids.indexOf(contact.id) < 0) {
-        ids.push(contact.id);
-        checked.push(contact);
+  function parseSearchQuery(searchQuery) {
+    let searchQueryText = '';
+    let searchQueryNumber = '';
+    if (searchQuery) {
+      if (searchQuery.match(/\d+/)) {
+        searchQueryNumber = searchQuery.match(/\d+/).toString();
+        const queries = searchQuery.split(searchQueryNumber);
+        const query = queries[0] || queries[1];
+        searchQueryText = query ? query : '';
+      } else {
+        searchQueryText = searchQuery;
       }
-    });
-    return checked;
+    }
+    return { searchQueryText, searchQueryNumber };
   }
-  getContacts = () => {
-    const { filter, contacts } = this.props.data;
-    const { searchQueryText, searchQueryNumber } = this.parseSearchQuery(filter.toString());
+
+  function getContacts() {
+    const { filter, contacts } = data;
+    const { searchQueryText, searchQueryNumber } = parseSearchQuery(filter.toString());
     if (searchQueryText.length > 0 || searchQueryNumber.length > 0) {
       let filtredArray = [];
       //поиск по номеру
       if (searchQueryNumber.length > 0) {
         filtredArray = contacts.filter(({ number }) => {
-          const clearNumberText = this.doClearNumber(number);
+          const clearNumberText = doClearNumber(number);
           return clearNumberText.includes(searchQueryNumber);
         });
         //комбинированый поиск
@@ -96,41 +100,35 @@ class Section extends Component {
       }
     }
     return contacts;
-  };
-
-  parseSearchQuery(searchQuery) {
-    let searchQueryText = '';
-    let searchQueryNumber = '';
-    if (searchQuery) {
-      if (searchQuery.match(/\d+/)) {
-        searchQueryNumber = searchQuery.match(/\d+/).toString();
-        const queries = searchQuery.split(searchQueryNumber);
-        const query = queries[0] || queries[1];
-        searchQueryText = query ? query : '';
-      } else {
-        searchQueryText = searchQuery;
-      }
-    }
-    return { searchQueryText, searchQueryNumber };
   }
-  render = () => {
-    const { title, component, searchFunc, deleteFunc, data } = this.props;
-    const contacts = this.checkForDoubleID(this.getContacts());
-    return (
-      <SectionStyle>
-        <TitleH1>{title}</TitleH1>
-        {component === 'Form' && <Form onSubmit={this.onSubmit} />}
-        {component === 'Contacts' && (
-          <Contacts
-            contacts={contacts}
-            searchFunc={searchFunc}
-            deleteFunc={deleteFunc}
-            message={data.length ? 'Sorrry, no contacts found.' : 'Sorrry, you have no contacts yet.'}
-          />
-        )}
-      </SectionStyle>
-    );
-  };
+
+  function checkForDoubleID(contacts) {
+    const idList = [];
+    const filtredList = [];
+    contacts.forEach(contact => {
+      if (idList.indexOf(contact.id) < 0) {
+        idList.push(contact.id);
+        filtredList.push(contact);
+      }
+    });
+    return filtredList;
+  }
+
+  const contacts = checkForDoubleID(getContacts());
+  return (
+    <SectionStyle>
+      <TitleH1>{title}</TitleH1>
+      {component === 'Form' && <Form onSubmit={onSubmit} />}
+      {component === 'Contacts' && (
+        <Contacts
+          contacts={contacts}
+          searchFunc={searchFunc}
+          deleteFunc={deleteFunc}
+          message={data.length ? 'Sorrry, no contacts found.' : 'Sorrry, you have no contacts yet.'}
+        />
+      )}
+    </SectionStyle>
+  );
 }
 
 Section.propTypes = {

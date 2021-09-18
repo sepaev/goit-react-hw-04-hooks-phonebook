@@ -16,10 +16,8 @@ function App() {
 
   const doDeleteContact = id => {
     if (!id) return;
-
     const newArr = [];
     let reportName;
-
     contacts.forEach(contact => {
       if (contact.id !== id) {
         newArr.push(contact);
@@ -27,7 +25,6 @@ function App() {
         reportName = contact.name;
       }
     });
-
     if (newArr.length === contacts.length) {
       Notify.failure('Oh, no! Nothing was deleted.');
       return;
@@ -42,12 +39,12 @@ function App() {
   };
 
   useEffect(() => {
-    const storage = JSON.parse(localStorage.getItem('contacts'));
+    const storage = JSON.parse(window.localStorage.getItem('contacts'));
     if (storage) setContacts(storage);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
+    window.localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
   return (
